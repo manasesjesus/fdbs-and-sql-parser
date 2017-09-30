@@ -89,14 +89,14 @@ The main entry point of the system and it implements the Facade design pattern. 
 
 5. FedFileReader gets all the statements from a SQL file.
 6. FedStatement executes each statement by calling the polymorphic method execute:
- If it is a comment, FedLogger logs it
- If it is a SET ECHO command, FedLogger enabled or disable the logs
- If the statement is to be validated, Parser does it
- If it is a SELECT, calls the executeQuery method
- Otherwise, calls the executeUpdate method
+<br>If it is a comment, FedLogger logs it
+<br>If it is a SET ECHO command, FedLogger enabled or disable the logs
+<br>If the statement is to be validated, Parser does it
+<br>If it is a SELECT, calls the executeQuery method
+<br>Otherwise, calls the executeUpdate method
 7. An Object is returned by FedStatement after the execution of the statement.
- If the Object is instance of Integer, FedLogger displays the number of deleted rows, updated rows, etc.
- If the Object is instance of FedResultSet, FedLogger calls the method printFedResults and logs the results of a QL statement.
+<br>If the Object is instance of Integer, FedLogger displays the number of deleted rows, updated rows, etc.
+<br>If the Object is instance of FedResultSet, FedLogger calls the method printFedResults and logs the results of a QL statement.
 
 8. Steps 5 to 7 are repeated for each SQL file contained in the list (step 2).
 9. If there occurs an exception, FedException, ParseException and others are handled.
