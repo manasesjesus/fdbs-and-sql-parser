@@ -2,7 +2,7 @@
 
 Implementation of a Federative Database System based on a set of homogenous Centralized Database Systems (CDBS Oracle instances), and the implementation of a simple SQL parser. Everything was developed using Java.
 
-### :small_blue_diamond: Requirements
+## Requirements
 
 Background information, description of the tasks in detail and the functionality of the FDBS layer to be implemented are specified in the document that is released together with this report [AssignmentGP4_V7.docx](doc/AssignmentGP4_V7.docx).
 
@@ -13,7 +13,7 @@ Essential subtasks of the FDBS, among others, are:
 - Query analysis and query distribution
 - Result set management
 
-### :small_blue_diamond: Design and Architecture
+## Design and Architecture
 The architecture of the system is depicted in Figure 1 and briefly presents the principal interaction among a Java application invoking the Federative layer through its facade.
 
 ![FDBS architecture and principal components interactions](doc/fdbs.png)
@@ -34,7 +34,7 @@ To manage the distribution schema (Federative DB catalogue) one table is being c
 > Figure 2: Federative DB required tables
 
 
-### :small_blue_diamond: Implementation
+## Implementation
 
 Grammatical rules were provided which are to be implemented for the SQL primary language statements. The provided document [AssignmentGP4_V7.docx](doc/AssignmentGP4_V7.docx) has all the grammar rules of the assignment. Those rules have been implemented using JavaCC and are defined according to the given syntax.
 
@@ -58,7 +58,7 @@ COMMIT and ROLLBACK commands were the only two implemented in the project.
 And last but not least, the command SET ECHO [ON|OFF] was implemented to enable/disable the logger levels.
 
 
-### :small_blue_diamond: Components
+## Components
 
 The components of the system are detailed below.
 
@@ -173,7 +173,7 @@ Additionally, it provides a method to set the number of rows that should be fetc
 
 It works similar to a JDBC ResultSet class by aggregating three of them. It provides a polymorphic getValue method to call getString or getInt methods based on the column type.
 
-### :small_blue_diamond: Release
+## Release
 
 The software is released under MIT license. A zip file is provided containing the following directories/files:
 
@@ -201,7 +201,7 @@ To test in Eclipse or other IDE:
     - configure the fdbs-test.jar as a library or
     - copy the source code into the project
 - Create a Java class with a main method and call the FDBS start method `new FDBSFacade().start();`
-- That’s it. 
+- That’s it.
 
 
 
@@ -209,14 +209,14 @@ To test in Eclipse or other IDE:
 
 
 
-### :small_blue_diamond: Author
+## Author
 
 - [Manasés Jesús](https://github.com/manasesjesus/)
 
-### :small_blue_diamond: License
+## License
 
 This project is licensed under the MIT License
 
-### :small_blue_diamond: Acknowledgments
+## Acknowledgments
 
 - Contributors of the parser: @intesar-gist, @mawunyega
