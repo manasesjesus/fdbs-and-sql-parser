@@ -1,10 +1,14 @@
 # Partial implementation of a Federative Database System
+[![fdbs](https://img.shields.io/badge/author-Manasés%20Jesús-blue.svg)]()  [![fdbs](https://img.shields.io/dub/l/vibe-d.svg)]()  [![fdbs](https://img.shields.io/badge/release-v1.0.0-blue.svg)]()
+[![fdbs](https://img.shields.io/bithound/code/github/rexxars/sse-channel.svg)]()  [![fdbs](https://img.shields.io/travis/rust-lang/rust.svg)]() [![fdbs](https://img.shields.io/badge/test-passing-brightgreen.svg)]()
+[![fdbs](https://img.shields.io/badge/dependencies-JDBC%2C%20Log4j-orange.svg)]()
+
 
 Implementation of a Federative Database System (FDBS) based on a set of homogenous Centralized Database Systems (CDBS Oracle instances), and the implementation of a simple SQL parser. Everything was developed using Java.
 
 ## Requirements
 
-Background information, description of the tasks in detail and the functionality of the FDBS layer to be implemented are specified in the document that is released together with this report [AssignmentGP4_V7.docx](doc/AssignmentGP4_V7.docx).
+Background information, description of the tasks in detail and the functionality of the FDBS layer to be implemented are specified in the document  [AssignmentGP4_V7.docx](doc/AssignmentGP4_V7.docx).
 
 Essential subtasks of the FDBS, among others, are:
 - Syntax analysis of SQL statements
@@ -18,7 +22,7 @@ The architecture of the system is depicted in Figure 1 and briefly presents the 
 
 <img src="doc/fdbs.png" width="700" height="auto" />
 
-> Figure 1: FDBS architecture and principal components interactions
+> Figure 1: FDBS architecture and principal interactions between the components
 
 The Federative layer uses the JDBC API to access the three CDBS and the Log4j API to log the processed statements and other messages to a file and system console.
 
@@ -47,15 +51,15 @@ The minimal subset of SQL statements that the FDBS Parser is able to handle are:
 - DROP TABLE. Since this statement was not critical, a simple DROP structure was followed to implement it. 
 
 #### DML
-- INSERT. Single tuple insertion is implemented in this project. Tuples are inserted to partitioned or non-partitioned.
-- DELETE. Two types of DELETE statements are implemented for this project:  i.e. Conditional and unconditional.
+- INSERT. Single tuple insertion is implemented in this project. Tuples are inserted to partitioned or non-partitioned tables.
+- DELETE. Two types of DELETE statements are implemented for this project:  conditional and unconditional.
 - UPDATE. Update of tuples is implemented. When a value of a tuple is updated and this value defines on which database the tuple shall be stored, the tuple gets moved accordingly.  
 
 #### QL
-The SELECT statement was the most difficult part of the implementation. Select queries could be performed on either a single database instance at a time or all at once. Dynamic query capabilities such applying conditions, aggregate functions, and most importantly allowing the possibility of joining two tables while executing a SELECT query were made possible.
+The SELECT statement was the most difficult part of the implementation. Select queries could be performed on either a single database instance at a time or all at once. Dynamic query capabilities such applying conditions, aggregate functions, and joining two tables while executing a SELECT query were made possible.
 
 #### TCL
-COMMIT and ROLLBACK commands were the only two implemented in the project.
+COMMIT and ROLLBACK commands were the only two implemented.
 
 And last but not least, the command SET ECHO [ON|OFF] was implemented to enable/disable the logger levels.
 
@@ -66,9 +70,9 @@ The components of the system are detailed below.
 
 #### Federative SQL Parser
 
-A text file with extension .jj (e.g. filename.jj) contains the whole program which is then processed to be parsed by JavaCC, which compiles the text file and generate seven other Java classes (the whole parser): 
-- **ParseException** and **TokenMgrError**. Used for errors detected by the parser. Subclass of Exception and hence of  Throwable.
-- **Token** is a class representing tokens. Each Token object has an integer field kind that represents the kind of the token (PLUS, NUMBER or EOF) and a String field.
+A text file with extension .jj (e.g. filename.jj) contains the whole program which is then processed to be parsed by JavaCC, which compiles the text file and generates seven other Java classes (the whole parser): 
+- **ParseException** and **TokenMgrError**. Used for errors detected by the parser.
+- **Token** is a class representing tokens. Each Token object has an integer field that represents the kind of the token (PLUS, NUMBER or EOF) and a String field.
 - **SimpleCharStream**. An adapter class that delivers characters to the lexical analyzer.
 - **{filename}Constants**. An interface that defines a number of classes used in both the lexical analyzer and the parser.
 - **{filename}TokenManager**. The lexical analyzer.
@@ -78,7 +82,7 @@ A text file with extension .jj (e.g. filename.jj) contains the whole program whi
 
 #### FDBSFacade
 
-The main entry point of the system and it implements the Facade design pattern. A user writing a java application only has to define the configuration properties file (see FedConfig) and the directory containing all the SQL scripts to be executed. This component provides the method start as depicted on Figure 1 and the flow is as follows:
+The main entry point of the system and it implements the Facade design pattern. A user writing a Java application only has to define the configuration properties file (see FedConfig) and the directory containing all the SQL scripts to be executed. This component provides the method start as depicted on Figure 1 and the flow is as follows:
 
 1. FedConfig loads the properties and sets the system configuration.
 2. Prepares a list containing the file names of the SQL scripts to be executed.
@@ -87,14 +91,14 @@ The main entry point of the system and it implements the Facade design pattern. 
 
 5. FedFileReader gets all the statements from a SQL file.
 6. FedStatement executes each statement by calling the polymorphic method execute:
-If it is a comment, FedLogger logs it
-If it is a SET ECHO command, FedLogger enabled or disable the logs
-If the statement is to be validated, Parser does it
-If it is a SELECT, calls the executeQuery method
-Otherwise, calls the executeUpdate method
+ If it is a comment, FedLogger logs it
+ If it is a SET ECHO command, FedLogger enabled or disable the logs
+ If the statement is to be validated, Parser does it
+ If it is a SELECT, calls the executeQuery method
+ Otherwise, calls the executeUpdate method
 7. An Object is returned by FedStatement after the execution of the statement.
-If the Object is instance of Integer, FedLogger displays the number of deleted rows, updated rows, etc.
-If the Object is instance of FedResultSet, FedLogger calls the method printFedResults and logs the results of a QL statement.
+ If the Object is instance of Integer, FedLogger displays the number of deleted rows, updated rows, etc.
+ If the Object is instance of FedResultSet, FedLogger calls the method printFedResults and logs the results of a QL statement.
 
 8. Steps 5 to 7 are repeated for each SQL file contained in the list (step 2).
 9. If there occurs an exception, FedException, ParseException and others are handled.
@@ -102,7 +106,7 @@ If the Object is instance of FedResultSet, FedLogger calls the method printFedRe
 
 #### FedCatalog
 
-It defines the names of the METADATA and OPERATION tables, and provides methods to create them (if not yet created). It also provides a method to drop all the temporal tables used on the distributed joins.
+It defines the names of the METADATA and OPERATION tables, and provides methods to create them (if not yet created). It also contains the methods to execute the distributed joins.
 
 #### FedConfig
 
@@ -136,12 +140,12 @@ logfile=fdbs.txt
 
 It implements the Singleton design pattern to have the logger available at anytime from anywhere. It is used to log trace, info and error messages to the system console and to a file (name specified in the properties or fdbs.log if non provided). Additionally, the log level debug is used on a method to log the results of a FedResultSet object created by the execution of a query. This component uses the Log4j2 API and it is configured in the log4j2.xml resource file. The console output will display different log levels: Info (dark green), Trace (light green / yellow), Error (red) and Debug (black).
 
-Each log level outputs the time of the logging event up to a granularity of milliseconds. Messages for the levels Trace, Error and Debug are logged automatically by the FDBS while evaluating the statements contained in an SQL script file, and additionally the user can provide Info messages to be logged by using comments in the script file. The text to be logged must be placed between double square brackets. The Info messages shown in Figure 3 are written in the following way:
+Each log level outputs the time of the logging event up to a granularity of milliseconds. Messages for the levels Trace, Error and Debug are logged automatically by the FDBS while evaluating the statements contained in a SQL script file, and additionally the user can provide Info messages to be logged by using comments in the script file. The text (Info) to be logged must be placed between double square brackets in the following way:
 ```
 /* [[CHECK MEILEN > 0]] */
 /* [[CHECK PREIS NOT NULL]] */
 ```
-**Note**: in order to see the log levels with colors while working with Eclipse IDE, the plug-in Ansi Console is required.
+**Note**: in order to see the log levels with colors while working with Eclipse IDE, the plug-in **[ANSI Escape in Console](https://marketplace.eclipse.org/content/ansi-escape-console)** is required.
 
 #### FedFileReader
 
@@ -153,9 +157,9 @@ Custom Exception of the FDBS. It creates a FedException object that receives a S
 
 #### FedShutdown
 
-It implements the Runnable interface. A thread is created by FDBSFacade and added to the ShutdownHook. This thread will be executed when the Java Virtual Machine (JVM) is shutting down. This component calls the method to drop all the temporal tables.
+It implements the Runnable interface. A thread is created by FDBSFacade and added to the Shutdown Hook. This thread will be executed when the Java Virtual Machine (JVM) is shutting down. This component calls the FedCatalog method to drop all the temporal tables.
 
-#### FedShutdown
+#### FedPseudoDriver
 
 This component creates and returns a FedConnection object that establishes the connections to the three databases with the user credentials specified in the configuration file fjdbc.properties. It also provides a method to specify different credentials if needed.
 
@@ -165,7 +169,7 @@ It works similar to a JDBC Connection class by aggregating three of them to hold
 
 #### FedStatement
 
-It works similar to a JDBC Statement class by aggregating three of them. Once created (within the FedConnection constructor), it creates three Statement object from each of the database connections.
+It works similar to a JDBC Statement class by aggregating three of them. Once created (within the FedConnection constructor), it creates three Statement objects from each of the database connections.
 
 It provides a polymorphic execute method to call executeQuery or executeUpdate based on the SQL statement/command received as a parameter. It validates the statement if the parser validation is activated in the configuration properties. It also calls the FedLogger if the statement is a logger-comment or a SET ECHO command.
 
@@ -206,18 +210,6 @@ To test in Eclipse or other IDE:
 - That’s it.
 
 
-
-
-
-
-
-## Author
-
-- [Manasés Jesús](https://github.com/manasesjesus/)
-
-## License
-
-This project is licensed under the MIT License
 
 ## Acknowledgments
 
