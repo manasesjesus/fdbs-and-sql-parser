@@ -182,15 +182,12 @@ It works similar to a JDBC ResultSet class by aggregating three of them. It prov
 The software is released under MIT license. A zip file is provided containing the following directories/files:
 
 - config/fdbs.properties
-- doc/AssignmentGP4_V7.docx
 - lib/      
- log4j-api-2.7.jar,
- log4j-core-2.7.jar,
- ojdbc6.jar
+<br>log4j-api-2.7.jar
+<br>log4j-core-2.7.jar
+<br>ojdbc6.jar
 - scripts/      
- all the tested SQL scripts sorted by filename (starting with numbers)
-- src/      
- Java classes of the implementation
+<br>all the tested SQL scripts sorted by filename (starting with numbers)
 - fdbs-test.jar
 - LICENSE
 
