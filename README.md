@@ -1,6 +1,6 @@
-# Partial implementation of a Federative Database System (FDBS)
+# Partial implementation of a Federative Database System
 
-Implementation of a Federative Database System based on a set of homogenous Centralized Database Systems (CDBS Oracle instances), and the implementation of a simple SQL parser. Everything was developed using Java.
+Implementation of a Federative Database System (FDBS) based on a set of homogenous Centralized Database Systems (CDBS Oracle instances), and the implementation of a simple SQL parser. Everything was developed using Java.
 
 ## Requirements
 
@@ -16,7 +16,7 @@ Essential subtasks of the FDBS, among others, are:
 ## Design and Architecture
 The architecture of the system is depicted in Figure 1 and briefly presents the principal interaction among a Java application invoking the Federative layer through its facade.
 
-![FDBS architecture and principal components interactions](doc/fdbs.png)
+<img src="doc/fdbs.png" width="500" height="auto" />
 > Figure 1: FDBS architecture and principal components interactions
 
 The Federative layer uses the JDBC API to access the three CDBS and the Log4j API to log the processed statements and other messages to a file and system console.
