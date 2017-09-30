@@ -18,7 +18,7 @@ Essential subtasks of the FDBS, among others, are:
 ## Design and Architecture
 The architecture of the system is depicted in Figure 1 and briefly presents the principal interaction among a Java application invoking the Federative layer through its facade.
 
-<img src="doc/fdbs.png" width="700" height="auto" />
+<img src="doc/fdbs.png" width="569" height="auto" />
 
 > Figure 1: FDBS architecture and principal interactions between the components
 
