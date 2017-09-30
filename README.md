@@ -16,7 +16,8 @@ Essential subtasks of the FDBS, among others, are:
 ## Design and Architecture
 The architecture of the system is depicted in Figure 1 and briefly presents the principal interaction among a Java application invoking the Federative layer through its facade.
 
-<img src="doc/fdbs.png" width="500" height="auto" />
+<img src="doc/fdbs.png" width="700" height="auto" />
+
 > Figure 1: FDBS architecture and principal components interactions
 
 The Federative layer uses the JDBC API to access the three CDBS and the Log4j API to log the processed statements and other messages to a file and system console.
@@ -31,6 +32,7 @@ The (domain) names of the database servers are:
 To manage the distribution schema (Federative DB catalogue) one table is being created (Figure 2 left) on the main database together with other table (Figure 2 right) that is used for the aggregate functions.
 
 <img src="doc/catalog.png" width="400" height="auto" />
+
 > Figure 2: Federative DB required tables
 
 
