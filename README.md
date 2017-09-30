@@ -1,4 +1,4 @@
-## Partial implementation of a Federative Database System (FDBS)
+# Partial implementation of a Federative Database System (FDBS)
 
 Implementation of a Federative Database System based on a set of homogenous Centralized Database Systems (CDBS Oracle instances), and the implementation of a simple SQL parser. Everything was developed using Java.
 
@@ -30,7 +30,7 @@ The (domain) names of the database servers are:
 
 To manage the distribution schema (Federative DB catalogue) one table is being created (Figure 2 left) on the main database together with other table (Figure 2 right) that is used for the aggregate functions.
 
-![Federative DB required tables](doc/catalog.png =250x100)
+<img src="doc/catalog.png" width="400" height="auto" />
 > Figure 2: Federative DB required tables
 
 
