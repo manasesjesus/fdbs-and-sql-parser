@@ -30,7 +30,7 @@ The (domain) names of the database servers are:
 
 To manage the distribution schema (Federative DB catalogue) one table is being created (Figure 2 left) on the main database together with other table (Figure 2 right) that is used for the aggregate functions.
 
-![Federative DB required tables](doc/catalog.png)
+![Federative DB required tables](doc/catalog.png =250x100)
 > Figure 2: Federative DB required tables
 
 
