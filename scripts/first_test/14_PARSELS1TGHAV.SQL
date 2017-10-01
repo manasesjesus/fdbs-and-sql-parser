@@ -1,0 +1,29 @@
+/*
+set echo on;
+
+alter session set nls_language = english;
+alter session set nls_date_format = 'DD-MON-YYYY';
+alter session set nls_date_language = english;
+*/
+
+/* [[SELECT GROUP BY (one partition)]] */
+SELECT FLUGLINIE.LAND, COUNT(*) FROM FLUGLINIE GROUP BY FLUGLINIE.LAND;
+
+
+/* [[SELECT GROUP BY HAVING (one partition)]] */
+SELECT BUCHUNG.NACH, SUM(BUCHUNG.MEILEN) FROM BUCHUNG
+GROUP BY BUCHUNG.NACH HAVING COUNT (*) = 4;
+
+/* [[SELECT GROUP BY HAVING NOTHING]] */
+SELECT BUCHUNG.NACH, SUM(BUCHUNG.MEILEN) FROM BUCHUNG
+GROUP BY BUCHUNG.NACH HAVING COUNT (*) > 4000;
+
+
+/* [[SELECT GROUP BY HAVING WHERE (all partitions)]] */
+SELECT BUCHUNG.VON, SUM(BUCHUNG.PREIS) FROM BUCHUNG WHERE (BUCHUNG.BNR > 20)
+GROUP BY BUCHUNG.VON HAVING COUNT (*) > 10;
+
+
+rollback;
+
+  

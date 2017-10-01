@@ -1,0 +1,27 @@
+set echo on;
+
+alter session set nls_language = english;
+alter session set nls_date_format = 'DD-MON-YYYY';
+alter session set nls_date_language = english;
+
+
+
+/* SELECT GROUP BY HAVING */
+SELECT BUCHUNG.NACH, COUNT(*) FROM BUCHUNG
+GROUP BY BUCHUNG.NACH HAVING COUNT (*) = 4;
+
+
+/* SELECT GROUP BY HAVING WHERE */
+SELECT BUCHUNG.VON, COUNT(*) FROM BUCHUNG WHERE (BUCHUNG.BNR > 20)
+GROUP BY BUCHUNG.VON HAVING COUNT (*) > 10;
+
+
+/* SELECT GROUP BY HAVING */
+SELECT PASSAGIER.LAND, COUNT(*) FROM PASSAGIER
+GROUP BY PASSAGIER.LAND HAVING COUNT (*) > 24;
+
+
+
+
+rollback;
+  

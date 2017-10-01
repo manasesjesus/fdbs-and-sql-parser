@@ -1,0 +1,26 @@
+/*
+set echo on;
+
+alter session set nls_language = english;
+alter session set nls_date_format = 'DD-MON-YYYY';
+alter session set nls_date_language = english;
+*/
+
+/* [[SELECT COUNT GROUP BY ONE PARTITION]] */
+SELECT FLUGLINIE.LAND, COUNT(*) FROM FLUGLINIE GROUP BY FLUGLINIE.LAND;
+
+
+/* [[SELECT COUNT GROUP BY ALL PARTITIONS]] */
+SELECT FLUG.FLC, COUNT(*) FROM FLUG GROUP BY FLUG.FLC;
+
+
+/* [[SELECT SUM GROUP BY ALL PARTITIONS]] */
+SELECT FLUG.FLC, SUM(FLUG.FNR) FROM FLUG GROUP BY FLUG.FLC;
+
+
+/* [[SELECT COUNT GROUP BY WHERE NOTHING]] */
+SELECT FLUG.FLC, COUNT(*) FROM FLUG WHERE (FLUG.FLC = 'MX') GROUP BY FLUG.FLC;
+
+
+rollback;
+  

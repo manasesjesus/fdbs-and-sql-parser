@@ -1,0 +1,24 @@
+set echo on;
+
+alter session set nls_language = english;
+alter session set nls_date_format = 'DD-MON-YYYY';
+alter session set nls_date_language = english;
+
+
+/* SELECT WHERE GROUP BY */
+SELECT FLUGLINIE.LAND, COUNT(*) FROM FLUGLINIE
+WHERE (ALLIANZ = 'Star') GROUP BY FLUGLINIE.LAND;
+
+
+/* SELECT WHERE GROUP BY */
+SELECT BUCHUNG.FLC, SUM(BUCHUNG.PREIS) FROM BUCHUNG
+WHERE (BUCHUNG.MEILEN > 3000) GROUP BY BUCHUNG.FLC;
+
+
+/* SELECT WHERE NOTHING GROUP BY */
+SELECT BUCHUNG.PNR, SUM(BUCHUNG.MEILEN) FROM BUCHUNG
+WHERE (BUCHUNG.MEILEN < 0) GROUP BY BUCHUNG.PNR;
+
+
+rollback;
+  

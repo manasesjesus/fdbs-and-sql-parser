@@ -1,0 +1,524 @@
+options
+{
+    STATIC = false ;
+}
+
+PARSER_BEGIN (Parser)
+package fed.parser;
+
+import java.io.StringReader;
+
+/**
+ * SQL validator / parser
+ *
+ * @authors (Github) @intesar-gist, @mawunyega, @manasesjesus
+ */
+@SuppressWarnings({"unused", "serial"})
+public class Parser {
+    /** Constructor with String for a single statement */
+    public Parser (String statement) {
+        this(new StringReader(statement.endsWith(";") ? statement : statement + ";"));
+    }
+
+    /** Validate a script file or a single statement */
+    public boolean isValid () throws ParseException, TokenMgrError {
+        return validate();
+    }
+}
+PARSER_END (Parser)
+
+
+/* white-space, comments */
+SKIP: {
+      " " | "\t" | "\n" | "\r" | "\f"
+}
+SKIP: {
+    <COMMENT_LINE: "--" (~["\n","\r"])* ("\n"|"\r"|"\r\n") >
+}
+SKIP:{
+    <COMMENT_BLOCK: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+}
+
+/* separator and operator literals (prefix with O_) */
+TOKEN: {
+      <O_ASTERISK: "*"> | <O_CLOSEPAREN: ")"> | <O_OPENPAREN: "(">
+    | <O_COMMA: ",">   | <O_TERMINATOR: ";">  | <O_DOT: ".">
+    | <O_PERCENT: "%"> | <O_EQUAL: "="> | <O_GREATER: ">">
+    | <O_GREATEREQUAL: ">="> | <O_LESS: "<"> | <O_LESSEQUAL: "<=">
+    | <O_MINUS: "-"> | <O_NOTEQUAL2: "<>"> | <O_NOTEQUAL: "!=">
+}
+
+/* numeric literals */
+TOKEN : {
+     <FLOAT: <INTEGER> ( "." <INTEGER> ) | "." <INTEGER> >
+    | <INTEGER: ("-")? ( <DIGIT> )+ >
+    | <#DIGIT: ["0" - "9"] >
+}
+
+/* reserved words and keywords literals */
+TOKEN [IGNORE_CASE]: {
+
+	//K_ prefixed tokens are reserved words that's shouldn't be used in column names
+      <K_CREATE: "CREATE">
+    | <K_DROP: "DROP">
+    | <K_TABLE: "TABLE">
+    | <K_INSERT: "INSERT">
+    | <K_INTO: "INTO">
+    | <K_DELETE: "DELETE">
+    | <K_FROM: "FROM">
+    | <K_COMMIT:"COMMIT">
+    | <K_ROLLBACK:"ROLLBACK">
+
+    | <R_AND: "AND">
+    | <R_ASC: "ASC">
+    | <R_BY: "BY">
+    | <R_CONNECT: "CONNECT">
+    | <R_DESC: "DESC">
+    | <R_DISTINCT: "DISTINCT">
+    | <R_GROUP: "GROUP">
+    | <R_HAVING: "HAVING">
+    | <R_IN: "IN">
+    | <R_IS: "IS">
+    | <R_LIKE: "LIKE">
+    | <R_NOT: "NOT">
+    | <R_NULL: "NULL">
+    | <R_OR: "OR">
+    | <R_ORDER: "ORDER">
+    | <R_SELECT: "SELECT">
+    | <R_UNIQUE: "UNIQUE">
+    | <R_UPDATE: "UPDATE">
+    | <R_VALUES: "VALUES">
+    | <R_WHERE: "WHERE">
+    | <R_CONSTRAINTS: "CONSTRAINTS">
+    | <R_CONSTRAINT: "CONSTRAINT">
+    | <R_CREATE :("CREATE TABLE")>
+    | <R_DROP :("DROP TABLE")>
+    | <R_INSERT :("INSERT INTO")>
+    | <R_DELETE :("DELETE FROM")>
+    | <R_PRIMARY: ("PRIMARY KEY")>
+    | <R_FOREIGN: ("FOREIGN KEY")>
+    | <R_INTEGER: "INTEGER">
+    | <R_VARCHAR: "VARCHAR">
+    | <R_HORIZONTAL: "HORIZONTAL">
+    | <R_SET: "SET">
+    | <R_SUM: "SUM">
+    | <R_COUNT: "COUNT">
+    | <R_CHECK: "CHECK">
+    | <R_BETWEEN: "BETWEEN">
+    | <R_REFERENCES: "REFERENCES">
+    | <R_CASCADE: "CASCADE">
+    
+}
+
+/* query specific tokens */
+TOKEN [IGNORE_CASE]: {
+      <Q_ATTRIBUTE: (<S_IDENTIFIER><O_DOT><S_IDENTIFIER>)>
+    | <Q_COUNT: (<R_COUNT><O_OPENPAREN><O_ASTERISK><O_CLOSEPAREN>)>
+    | <Q_SUM: (<R_SUM><O_OPENPAREN><Q_ATTRIBUTE><O_CLOSEPAREN>)>
+    
+}
+
+/* identifier literals */
+TOKEN: {
+      <S_IDENTIFIER: (<LETTER>)+ (<DIGIT> | <LETTER> | <SPECIAL_CHARS>)* >
+    | <#LETTER: ["a"-"z", "A"-"Z"] >
+    | <#SPECIAL_CHARS: "_" >
+    | <QUOTED_STRING: <EMPTY_STRING> | "'" (~["'"])+ "'" >
+    | <#EMPTY_STRING: ("'" "'") >
+}
+
+// Parser entry point to validate a script file or a single statement
+public boolean validate ():
+{
+    
+}
+{
+	(
+
+        ( ProcessDDLStatement() | ProcessDMLStatement() | ProcessQLStatement())
+		{
+
+		}
+	)*
+	
+    // Commit or Rollback transaction
+    Transaction()
+
+    { return true; }
+}
+
+/********************************/
+/********* QL queries **********/
+/********************************/
+SQLStatement ProcessQLStatement():
+{
+    SQLStatement qlQuery;
+    Token queryType;
+}
+{
+	queryType = <R_SELECT>
+	(qlQuery = countAllTable() |LOOKAHEAD(3) qlQuery = aggregateFuncWithGroupby() | qlQuery = selectWithJoins())
+    {
+	    qlQuery.setStatementType(queryType.kind);
+    	return qlQuery;
+    }
+}
+
+/* select with and withuot joins */
+SQLStatement selectWithJoins():
+{
+    Token T;
+    SQLStatement qlQuery = new SQLStatement();
+}
+{
+	   (getListOfAttributes() | <O_ASTERISK>)
+	   <K_FROM> 
+	   (LOOKAHEAD(2)<S_IDENTIFIER><O_COMMA><S_IDENTIFIER> | LOOKAHEAD(2)<S_IDENTIFIER>)
+	   [whereWithJoin()]
+       <O_TERMINATOR>
+    
+       {return qlQuery;}
+}
+
+void whereWithJoin(): {} {
+	<R_WHERE> (LOOKAHEAD(4) singleJoinCondition() | LOOKAHEAD(3) nonJoinCondition() )
+}
+
+void singleJoinCondition(): {} {
+	<O_OPENPAREN><Q_ATTRIBUTE> ComparisonOperators() <Q_ATTRIBUTE><O_CLOSEPAREN> [<R_AND> nonJoinCondition()]
+}
+
+void nonJoinCondition(): {} {
+  <O_OPENPAREN>(<Q_ATTRIBUTE> ComparisonOperators() (<QUOTED_STRING> | <FLOAT> | <INTEGER>))<O_CLOSEPAREN> [((<R_AND> | <R_OR>) nonJoinCondition())]
+}
+
+void withOrWithoutHaving(): {} {
+	<R_GROUP> <R_BY> <Q_ATTRIBUTE>[<R_HAVING><R_COUNT><O_OPENPAREN><O_ASTERISK><O_CLOSEPAREN>ComparisonOperators()<INTEGER>]
+}
+
+/* COUNT TABLE */
+SQLStatement countAllTable():
+{
+    Token T;
+    SQLStatement qlQuery;
+}
+{
+	   <Q_COUNT>
+	   <K_FROM> 
+	   T = <S_IDENTIFIER>
+	   {    
+	      qlQuery = new SQLStatement();
+	      qlQuery.setTableName(T.image);
+	   }
+       <O_TERMINATOR>
+    
+       {return qlQuery;}
+}
+
+/* AGGREGATE FUNCTION WITH GROUP BY */
+SQLStatement aggregateFuncWithGroupby():
+{
+    Token T;
+    SQLStatement qlQuery;
+}
+{
+	   <Q_ATTRIBUTE> <O_COMMA> getAggregateFunction() 
+	   <K_FROM> 
+	   T = <S_IDENTIFIER>
+     [whereWithJoin()]
+	   
+	     withOrWithoutHaving() 	     
+	   {    
+	      qlQuery = new SQLStatement();
+	      qlQuery.setTableName(T.image);
+	   } 
+
+	    
+       <O_TERMINATOR>
+    
+       {return qlQuery;}
+}
+
+void getListOfAttributes():
+{
+}
+{
+	(<Q_ATTRIBUTE>)  [LOOKAHEAD(2) <O_COMMA> getListOfAttributes()]
+}
+
+void getAggregateFunction():
+{
+}
+{
+	<Q_COUNT> | <Q_SUM>
+}
+
+
+/********************************/
+/********* DML queries **********/
+/********************************/
+SQLStatement ProcessDMLStatement():
+{
+    SQLStatement dmlQuery;
+}
+{
+	(dmlQuery = insert() | dmlQuery = deleteTuple() | dmlQuery = updateTuple())
+    {return dmlQuery;}
+}
+
+/* UPDATE TUPLE */
+SQLStatement updateTuple():
+{
+    Token T;
+    Token queryType;
+    SQLStatement dmlQuery;
+}
+{
+	   queryType = <R_UPDATE>
+	   T =<S_IDENTIFIER>
+	   <R_SET> ColumnSetter()
+	   [<R_WHERE> ColumnComparison()]
+	   {    
+	      dmlQuery = new SQLStatement();
+	      dmlQuery.setTableName(T.image);
+	      dmlQuery.setStatementType(queryType.kind);
+	   }
+       <O_TERMINATOR>
+    
+       {return dmlQuery;}
+}
+
+void ColumnSetter():
+{
+}
+{
+	<S_IDENTIFIER> <O_EQUAL> (<QUOTED_STRING> | <FLOAT> | <INTEGER> | <R_NULL>) [(<O_COMMA>) ColumnSetter()]
+}
+
+/* INSERT TABLE */
+SQLStatement insert():
+{
+    Token T;
+    Token queryType;
+    SQLStatement dmlQuery;
+}
+{
+	   queryType = <R_INSERT>
+	   T =<S_IDENTIFIER>
+	   <R_VALUES> 
+		   <O_OPENPAREN> 
+		   		InsertValueExpressions()
+		   <O_CLOSEPAREN>
+	   {    
+	      dmlQuery = new SQLStatement();
+	      dmlQuery.setTableName(T.image);
+	      dmlQuery.setStatementType(queryType.kind);
+	   }
+       <O_TERMINATOR>
+       
+    
+       {return dmlQuery;}
+}
+
+void InsertValueExpressions():
+{
+}
+{
+  (<QUOTED_STRING> | <FLOAT> | <INTEGER> | <R_NULL>) [(<O_COMMA>) InsertValueExpressions()]
+}
+
+/* DELETE TUPLE */
+SQLStatement deleteTuple():
+{
+    Token T;
+    Token queryType;
+    SQLStatement dmlQuery;
+}
+{
+	   queryType = <R_DELETE>
+	   T =<S_IDENTIFIER>
+	   [<R_WHERE> ColumnComparison()]
+	   {    
+	      dmlQuery = new SQLStatement();
+	      dmlQuery.setTableName(T.image);
+	      dmlQuery.setStatementType(queryType.kind);
+	   }
+       <O_TERMINATOR>
+    
+       {return dmlQuery;}
+}
+
+void ColumnComparison():
+{
+}
+{
+  (<S_IDENTIFIER> ComparisonOperators() (<QUOTED_STRING> | <FLOAT> | <INTEGER>)) [((<R_AND> | <R_OR>) ColumnComparison())]
+}
+
+void ComparisonOperators():
+{
+}
+{
+  (<O_EQUAL> | <O_GREATER> | <O_GREATEREQUAL> | <O_LESS> | <O_LESSEQUAL> | <O_NOTEQUAL2> | <O_NOTEQUAL>) 
+}
+
+//commit && rollback.
+void Transaction():
+{}
+{
+    <K_COMMIT><O_TERMINATOR> | <K_ROLLBACK><O_TERMINATOR> | <EOF>
+}
+
+
+
+
+/* DDL Statements */
+SQLStatement ProcessDDLStatement():
+{
+    SQLStatement ddlQuery;
+}
+{
+	(ddlQuery = create() | ddlQuery = drop())
+    {return ddlQuery;}
+}
+
+/* DROP TABLE */
+SQLStatement drop():
+{
+    Token T;
+    Token queryType;
+    SQLStatement ddlQuery;
+}
+{
+	   queryType = <R_DROP>
+	   T =<S_IDENTIFIER>
+	   {    
+	      ddlQuery = new SQLStatement();
+	      ddlQuery.setTableName(T.image);
+	      ddlQuery.setStatementType(queryType.kind);
+	   }
+	   [(<R_CASCADE> <R_CONSTRAINTS>)]
+       <O_TERMINATOR>
+    
+       {return ddlQuery;}
+}
+
+/* CREATE TABLE */
+SQLStatement create():
+{
+    Token T;
+    Token queryType;
+    SQLStatement ddlQuery;
+    /*HashMap<String,String> attributes;*/
+}
+{
+       queryType = <R_CREATE>
+       T =<S_IDENTIFIER>
+       {    
+          ddlQuery = new SQLStatement ();
+          ddlQuery.setTableName(T.image);
+          ddlQuery.setStatementType(queryType.kind);
+       }
+      <O_OPENPAREN>
+      /*attributes = ColumnsAndConstraints()*/
+        ColumnsAndConstraints()
+      <O_CLOSEPAREN>
+      [processHorizontal()]
+      <O_TERMINATOR>
+
+     {
+     	/*ddlQuery.setAttributes(attributes);*/
+     	return ddlQuery;
+     }
+}
+
+void processHorizontal():
+{
+}
+{
+  <R_HORIZONTAL> (<O_OPENPAREN><S_IDENTIFIER><O_OPENPAREN>PartioningLimits()<O_CLOSEPAREN><O_CLOSEPAREN>)
+}
+
+void PartioningLimits():
+{
+}
+{
+  (<INTEGER>)+ [<O_COMMA> <INTEGER>]
+}
+
+void ColumnsAndConstraints():
+{
+   /*HashMap<String,String> var = new HashMap<String, String>();*/
+}
+{
+  (
+  		/*var = Columns()*/
+        Columns()
+  )+ 
+  (
+    	<O_COMMA> Constraints()
+  )*
+  {/* return var; */}
+}
+
+void Columns():
+{
+   Token TName;
+   Token TType;
+   /*HashMap<String,String> var = new HashMap<String, String>();*/
+}
+{
+    TName = <S_IDENTIFIER> //name of the column
+    TType = ColType()
+    [LOOKAHEAD(2) <O_COMMA> Columns()]
+    {/* var.put(TName.image,TType.image); */}
+
+  {/* return var; */}
+}
+
+Token ColType():
+{
+   
+}
+{
+    (<R_INTEGER> | <R_VARCHAR><O_OPENPAREN><INTEGER><O_CLOSEPAREN>)
+    {return null;}
+}
+
+void Constraints(): {} {
+    <R_CONSTRAINT>
+    ConstraintType()
+    [LOOKAHEAD(2) <O_COMMA> Constraints()]
+
+}
+
+void ConstraintType(): {} {
+  <S_IDENTIFIER> (CustomCheckConstraitns() | PrimaryOrUnique() | ForeignKey())
+}
+
+void ForeignKey(): {} {
+    <R_FOREIGN> (<O_OPENPAREN><S_IDENTIFIER><O_CLOSEPAREN>) 
+    <R_REFERENCES> <S_IDENTIFIER>(<O_OPENPAREN><S_IDENTIFIER><O_CLOSEPAREN>)
+    
+}
+
+void PrimaryOrUnique(): {} {
+    (<R_PRIMARY> | <R_UNIQUE>)
+    (<O_OPENPAREN><S_IDENTIFIER><O_CLOSEPAREN>)
+}
+
+void CustomCheckConstraitns(): {} {
+	<R_CHECK> 
+	<O_OPENPAREN>
+		( 
+			   LOOKAHEAD(2) (<S_IDENTIFIER> (<R_IS> <R_NOT> <R_NULL>))
+			| LOOKAHEAD(2) (<S_IDENTIFIER> ComparisonOperators() (<S_IDENTIFIER> | <QUOTED_STRING> | <FLOAT> | <INTEGER>)) 
+			| LOOKAHEAD(2) (<S_IDENTIFIER> <R_BETWEEN> <INTEGER> <R_AND> <INTEGER>)
+			| LOOKAHEAD(2) (<S_IDENTIFIER> <R_IN> <O_OPENPAREN> SingleQuoteStrings() <O_CLOSEPAREN>)
+		)
+	<O_CLOSEPAREN>
+}
+
+void SingleQuoteStrings(): {} {
+	<QUOTED_STRING> [<O_COMMA> SingleQuoteStrings()]
+}
