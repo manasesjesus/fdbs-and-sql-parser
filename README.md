@@ -1,5 +1,5 @@
 # Partial Implementation of a Federative Database System
-[![fdbs](https://img.shields.io/badge/author-Manasés%20Jesús-blue.svg)]()  [![fdbs](https://img.shields.io/npm/l/express.svg)]() [![fdbs](https://img.shields.io/badge/release-v1.0.0-blue.svg)]() <br>[![fdbs](https://img.shields.io/travis/rust-lang/rust.svg)]() [![fdbs](https://img.shields.io/badge/test-passing-brightgreen.svg)]()<br>[![fdbs](https://img.shields.io/badge/dependencies-JDBC%2C%20Log4j-orange.svg)]()
+[![fdbs](https://img.shields.io/badge/author-Manasés%20Jesús-blue.svg)]()  [![fdbs](https://img.shields.io/npm/l/express.svg)]() <br>[![fdbs](https://img.shields.io/travis/rust-lang/rust.svg)]() [![fdbs](https://img.shields.io/badge/test-passing-brightgreen.svg)]()<br>[![fdbs](https://img.shields.io/badge/dependencies-JDBC%2C%20Log4j-orange.svg)]()
 
 
 Implementation of a Federative Database System (FDBS) based on a set of homogenous Centralized Database Systems (CDBS Oracle instances), and the implementation of a simple SQL parser. Everything was developed using Java.
