@@ -90,7 +90,7 @@ The main entry point of the system and it implements the Facade design pattern. 
 5. FedFileReader gets all the statements from a SQL file.
 6. FedStatement executes each statement by calling the polymorphic method execute:
 <br>If it is a comment, FedLogger logs it
-<br>If it is a SET ECHO command, FedLogger enabled or disable the logs
+<br>If it is a SET ECHO command, FedLogger enables or disables the logs
 <br>If the statement is to be validated, Parser does it
 <br>If it is a SELECT, calls the executeQuery method
 <br>Otherwise, calls the executeUpdate method
